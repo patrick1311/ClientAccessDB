@@ -31,20 +31,31 @@ public class DBConnect {
 			  
 			  System.out.println("Select your choice:");
 			  System.out.println("Press 1 to add Artist");
+			  System.out.println("Press 2 to add Customer");
 			  System.out.println("Press 0 to exit");
 			  input = Integer.parseInt(in.nextLine());
 		 
 			  switch(input) {
 			  	case 1:
 			  		System.out.println("Enter artist name:");
-			  		String name = in.nextLine();
+			  		String aname = in.nextLine();
 			  		System.out.println("Enter artist birthplace:");
 			  		String birthplace = in.nextLine();
 			  		System.out.println("Enter artist age:");
 			  		int age = Integer.parseInt(in.nextLine());
 			  		System.out.println("Enter artist style:");
 			  		String style = in.nextLine();
-			  		addArtist(con, name, birthplace, age, style);
+			  		addArtist(con, aname, birthplace, age, style);
+			  		System.out.println("\n");
+			  		break;
+			  	case 2:
+			  		System.out.println("Enter customer name:");
+			  		String cname = in.nextLine();
+			  		System.out.println("Enter customer address:");
+			  		String address = in.nextLine();
+			  		System.out.println("Enter total amount of dollars spent (e.g. 130.25):");
+			  		double amount = Double.parseDouble(in.nextLine());
+			  		addCustomer(con, cname, address, amount);
 			  		System.out.println("\n");
 			  		break;
 			  	case 0:
@@ -75,6 +86,16 @@ public class DBConnect {
 	  pstmt.setString(2, birthplace);
 	  pstmt.setInt(3, age);
 	  pstmt.setString(4, style);
+	  int result = pstmt.executeUpdate();
+	  System.out.println(result + " record is inserted");
+  }
+  
+  public static void addCustomer(Connection con, String name, String address, double amount) throws SQLException {
+	  String sql = "INSERT INTO CUSTOMER(CName, Address, Amount) VALUES (?,?,?)";
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, name);
+	  pstmt.setString(2, address);
+	  pstmt.setDouble(3, amount);
 	  int result = pstmt.executeUpdate();
 	  System.out.println(result + " record is inserted");
   }
