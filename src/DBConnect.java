@@ -24,38 +24,55 @@ public class DBConnect {
 
 	  
 	  boolean isRunning = true;
-	  int input;
+	  int input;	//user choice
 	  
 	  while(isRunning) {
 		  try {
 			  
-			  System.out.println("Select your choice:");
+			  System.out.println("---Client Menu---");
 			  System.out.println("Press 1 to add Artist");
 			  System.out.println("Press 2 to add Customer");
+			  System.out.println("Press 3 to add Artwork");
 			  System.out.println("Press 0 to exit");
+			  System.out.println();
+			  System.out.print("Client choice: ");
 			  input = Integer.parseInt(in.nextLine());
 		 
 			  switch(input) {
 			  	case 1:
-			  		System.out.println("Enter artist name:");
+			  		System.out.print("Enter artist name: ");
 			  		String aname = in.nextLine();
-			  		System.out.println("Enter artist birthplace:");
+			  		System.out.print("Enter artist birthplace: ");
 			  		String birthplace = in.nextLine();
-			  		System.out.println("Enter artist age:");
+			  		System.out.print("Enter artist age: ");
 			  		int age = Integer.parseInt(in.nextLine());
-			  		System.out.println("Enter artist style:");
+			  		System.out.print("Enter artist style: ");
 			  		String style = in.nextLine();
 			  		addArtist(con, aname, birthplace, age, style);
 			  		System.out.println("\n");
 			  		break;
 			  	case 2:
-			  		System.out.println("Enter customer name:");
+			  		System.out.print("Enter customer name: ");
 			  		String cname = in.nextLine();
-			  		System.out.println("Enter customer address:");
+			  		System.out.print("Enter customer address: ");
 			  		String address = in.nextLine();
-			  		System.out.println("Enter total amount of dollars spent (e.g. 130.25):");
+			  		System.out.print("Enter total amount of dollars spent (e.g. 130.25): ");
 			  		double amount = Double.parseDouble(in.nextLine());
 			  		addCustomer(con, cname, address, amount);
+			  		System.out.println("\n");
+			  		break;
+			  	case 3:
+			  		System.out.print("Enter art title: ");
+			  		String title = in.nextLine();
+			  		System.out.print("Enter art year: ");
+			  		int year = Integer.parseInt(in.nextLine());
+			  		System.out.print("Enter art type: ");
+			  		String type = in.nextLine();
+			  		System.out.print("Enter art price (e.g. 1500): ");
+			  		double price = Double.parseDouble(in.nextLine());
+			  		System.out.print("Enter artist: ");
+			  		String artist = in.nextLine();
+			  		addArtwork(con, title, year, type, price, artist);
 			  		System.out.println("\n");
 			  		break;
 			  	case 0:
@@ -63,7 +80,7 @@ public class DBConnect {
 			  		System.out.println("[...Program Terminated...]");
 			  		break;
 			  	default:
-			  		System.out.println("Invalid input! Try again.");
+			  		System.out.println("Invalid input! Try again.\n\n");
 			  		break;
 			  }
 			  
@@ -98,5 +115,59 @@ public class DBConnect {
 	  pstmt.setDouble(3, amount);
 	  int result = pstmt.executeUpdate();
 	  System.out.println(result + " record is inserted");
+  }
+  
+  public static void addArtwork(Connection con, String title, int year, String type, double price, String AName) throws SQLException {
+	  String sql = "INSERT INTO ARTWORK VALUES (?,?,?,?,?)";
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, title);
+	  pstmt.setInt(2, year);
+	  pstmt.setString(3, type);
+	  pstmt.setDouble(4, price);
+	  pstmt.setString(5, AName);
+	  int result = 0;
+	  try {
+		  result = pstmt.executeUpdate();
+	  }
+	  catch (Exception e) {
+		  System.out.println(e);
+		  System.out.println("Error! Please retry.");
+		  return;
+	  }
+	  
+	  System.out.println(result + " record is inserted");
+	  String group = addGroup(con);
+	  classify(con, title, group);
+	  
+  }
+  
+  public static String addGroup(Connection con) throws SQLException {
+	  Scanner input = new Scanner(System.in);
+
+	  System.out.print("Enter group name for this art: ");
+	  String group_name = input.nextLine();
+	  
+	  //check whether group name exists
+	  String sql = "select GName from ArtGroup where GName = ?";
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, group_name);
+	  ResultSet rs = pstmt.executeQuery();
+	  //if no group name then add new group
+	  if(!rs.next()) {
+		  pstmt = con.prepareStatement("INSERT INTO ARTGROUP VALUES (?)");
+		  pstmt.setString(1, group_name);
+		  pstmt.executeUpdate();
+		  System.out.println(group_name + " is added into ArtGroup");
+	  }
+	  
+	  return group_name;
+  }
+  
+  public static void classify(Connection con, String title, String group) throws SQLException {
+	  String sql = "insert into Classify VALUES (?, ?)";
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, title);
+	  pstmt.setString(2, group);
+	  pstmt.executeUpdate();
   }
 }
