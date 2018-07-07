@@ -1,12 +1,4 @@
-/*
- * Statement interface
-1) public ResultSet executeQuery(String sql): is used to execute SELECT query. It returns the object of ResultSet.
-2) public int executeUpdate(String sql): is used to execute specified query, it may be create, drop, insert, update, delete etc.
-3) public boolean execute(String sql): is used to execute queries that may return multiple results.
-4) public int[] executeBatch(): is used to execute batch of commands.
- */
 
-import java.io.*;
 import java.sql.*;
 import java.util.*;
 
@@ -22,10 +14,8 @@ public class DBConnect {
 			  "jdbc:mysql://localhost:3306/ArtBase?useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false"
 			  ,"root","");   
 
-	  
 	  boolean isRunning = true;
 	  int input;	//user choice
-	  
 	  while(isRunning) {
 		  try {
 			  
@@ -35,6 +25,13 @@ public class DBConnect {
 			  System.out.println("Press 3 to add Artwork");
 			  System.out.println("Press 4 to add Customer Interest");
 			  System.out.println("Press 5 to update Artist style");
+			  System.out.println("Press 6 to show Artist table");
+			  System.out.println("Press 7 to show ArtWork table");
+			  System.out.println("Press 8 to show ArtGroup table");
+			  System.out.println("Press 9 to show Customer table");
+			  System.out.println("Press 10 to show Classify entries");
+			  System.out.println("Press 11 to show Like_Group entries");
+			  System.out.println("Press 12 to show Like_Artist entries");
 			  System.out.println("Press 0 to exit");
 			  System.out.println();
 			  System.out.print("Client choice: ");
@@ -91,6 +88,34 @@ public class DBConnect {
 			  		System.out.print("Enter new art style: ");
 			  		String newStyle = in.nextLine();
 			  		updateArtist(con, name, newStyle);
+			  		System.out.println("\n");
+			  		break;
+			  	case 6:
+			  		printTable(con, "ARTIST");
+			  		System.out.println("\n");
+			  		break;
+			  	case 7:
+			  		printTable(con, "ARTWORK");
+			  		System.out.println("\n");
+			  		break;
+			  	case 8:
+			  		printTable(con, "ARTGROUP");
+			  		System.out.println("\n");
+			  		break;
+			  	case 9:
+			  		printTable(con, "CUSTOMER");
+			  		System.out.println("\n");
+			  		break;
+			  	case 10:
+			  		printTable(con, "CLASSIFY");
+			  		System.out.println("\n");
+			  		break;
+			  	case 11:
+			  		printTable(con, "LIKE_GROUP");
+			  		System.out.println("\n");
+			  		break;
+			  	case 12:
+			  		printTable(con, "LIKE_ARTIST");
 			  		System.out.println("\n");
 			  		break;
 			  	case 0:
@@ -234,5 +259,47 @@ public class DBConnect {
 	  pstmt.setString(2, name);
 	  pstmt.executeUpdate();
 	  System.out.println(name + " style has changed to " + style);
+  }
+  
+  public static void printTable(Connection con, String tableName) throws SQLException {
+	  String sql = "select * from " + tableName;
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  ResultSet rs = pstmt.executeQuery();
+	  ResultSetMetaData rsmd = rs.getMetaData();
+	  
+	  int column = rsmd.getColumnCount();
+	  int cellWidth = 20;	//column width
+	  
+	  //Print header row (column name)
+	  printTableLine(column, cellWidth);
+	  for(int i = 1; i <= column; i++) {
+		  if(i == 1) System.out.print("|");
+		  System.out.format("%-"+ cellWidth +"s|", rsmd.getColumnName(i));
+	  }
+	  System.out.println();
+	  printTableLine(column, cellWidth);
+	  
+	  //print column row
+	  while(rs.next()) {
+		  for(int i = 1; i <= column; i++) {
+			  if(i == 1) System.out.print("|");
+			  System.out.format("%-"+cellWidth+"s|", rs.getString(i));
+		  }
+		  System.out.println();	//go to next row
+	  }
+	  printTableLine(column, cellWidth);
+  }
+  
+  public static void printTableLine(int numberOfColumns, int cellWidth) {
+	  for(int i = 1; i <= numberOfColumns; i++) {
+		  if(i == 1) System.out.print("+");
+		  int space = 0;
+		  while(space < cellWidth) {
+			  System.out.print("-");
+			  space++;
+		  }
+		  System.out.print("+");
+	  }
+	  System.out.println();
   }
 }
