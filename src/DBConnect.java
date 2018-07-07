@@ -33,6 +33,8 @@ public class DBConnect {
 			  System.out.println("Press 1 to add Artist");
 			  System.out.println("Press 2 to add Customer");
 			  System.out.println("Press 3 to add Artwork");
+			  System.out.println("Press 4 to add Customer Interest");
+			  System.out.println("Press 5 to update Artist style");
 			  System.out.println("Press 0 to exit");
 			  System.out.println();
 			  System.out.print("Client choice: ");
@@ -75,6 +77,22 @@ public class DBConnect {
 			  		addArtwork(con, title, year, type, price, artist);
 			  		System.out.println("\n");
 			  		break;
+			  	case 4:
+			  		System.out.print("Enter CustomerID: ");
+			  		int CustID = Integer.parseInt(in.nextLine());
+			  		System.out.print("Enter Customer favorite group: ");
+			  		String favGroup = in.nextLine();
+			  		updateCust(con, CustID, favGroup);
+			  		System.out.println("\n");
+			  		break;
+			  	case 5:
+			  		System.out.print("Enter Artist name: ");
+			  		String name = in.nextLine();
+			  		System.out.print("Enter new art style: ");
+			  		String newStyle = in.nextLine();
+			  		updateArtist(con, name, newStyle);
+			  		System.out.println("\n");
+			  		break;
 			  	case 0:
 			  		isRunning = false;
 			  		System.out.println("[...Program Terminated...]");
@@ -103,8 +121,8 @@ public class DBConnect {
 	  pstmt.setString(2, birthplace);
 	  pstmt.setInt(3, age);
 	  pstmt.setString(4, style);
-	  int result = pstmt.executeUpdate();
-	  System.out.println(result + " record is inserted");
+	  pstmt.executeUpdate();
+	  System.out.println("Artist " + name + " is added into the gallery database.");
   }
   
   public static void addCustomer(Connection con, String name, String address, double amount) throws SQLException {
@@ -113,8 +131,8 @@ public class DBConnect {
 	  pstmt.setString(1, name);
 	  pstmt.setString(2, address);
 	  pstmt.setDouble(3, amount);
-	  int result = pstmt.executeUpdate();
-	  System.out.println(result + " record is inserted");
+	  pstmt.executeUpdate();
+	  System.out.println("A customer is added into the gallery database.");
   }
   
   public static void addArtwork(Connection con, String title, int year, String type, double price, String AName) throws SQLException {
@@ -125,9 +143,8 @@ public class DBConnect {
 	  pstmt.setString(3, type);
 	  pstmt.setDouble(4, price);
 	  pstmt.setString(5, AName);
-	  int result = 0;
 	  try {
-		  result = pstmt.executeUpdate();
+		  pstmt.executeUpdate();
 	  }
 	  catch (Exception e) {
 		  System.out.println(e);
@@ -135,7 +152,7 @@ public class DBConnect {
 		  return;
 	  }
 	  
-	  System.out.println(result + " record is inserted");
+	  System.out.println("'" + title + "' is added into the gallery.");
 	  String group = addGroup(con);
 	  classify(con, title, group);
 	  
@@ -148,17 +165,11 @@ public class DBConnect {
 	  String group_name = input.nextLine();
 	  
 	  //check whether group name exists
-	  String sql = "select GName from ArtGroup where GName = ?";
+	  String sql = "insert ignore into ArtGroup values (?)";
 	  PreparedStatement pstmt = con.prepareStatement(sql);
 	  pstmt.setString(1, group_name);
-	  ResultSet rs = pstmt.executeQuery();
-	  //if no group name then add new group
-	  if(!rs.next()) {
-		  pstmt = con.prepareStatement("INSERT INTO ARTGROUP VALUES (?)");
-		  pstmt.setString(1, group_name);
-		  pstmt.executeUpdate();
-		  System.out.println(group_name + " is added into ArtGroup");
-	  }
+	  pstmt.executeUpdate();
+	  System.out.println("Art Group updated!");
 	  
 	  return group_name;
   }
@@ -169,5 +180,59 @@ public class DBConnect {
 	  pstmt.setString(1, title);
 	  pstmt.setString(2, group);
 	  pstmt.executeUpdate();
+  }
+  
+  public static void updateCust(Connection con, int CustID, String group) throws SQLException {
+	  
+	  //Add new record into Like_Group table
+	  String sql = "insert ignore into Like_Group values (?, ?)";
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  pstmt.setInt(1, CustID);
+	  pstmt.setString(2, group);
+	  try {
+		  pstmt.executeUpdate();
+	  }
+	  catch (Exception e) {
+		  System.out.println(e);
+		  System.out.println("Error! Please retry.");
+		  return;
+	  }
+	  
+	  //query artist name based on ArtGroup
+	  sql = "select artwork.AName from artwork " 
+			  + "inner join classify on artwork.Title = classify.Title where GName = ?";
+	  pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, group);
+	  ResultSet rs = pstmt.executeQuery();
+	  //Insert all records that do not exist in Like_Artist table
+	  while(rs.next()) {
+		  sql = "insert ignore into LIKE_ARTIST values (?, ?)";
+		  pstmt = con.prepareStatement(sql);
+		  pstmt.setInt(1, CustID);
+		  pstmt.setString(2, rs.getString(1));
+		  pstmt.executeUpdate();
+	  } 
+	  System.out.println("Customer " + CustID + " liked the Art Group '" + group + "'");
+  }
+  
+  public static void updateArtist(Connection con, String name, String style) throws SQLException {
+	  //check whether artist is in DB
+	  String sql = "select AName from Artist where AName = ?";
+	  PreparedStatement pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, name);
+	  ResultSet rs = pstmt.executeQuery();
+	  if(!rs.next()) {
+		  System.out.println(name + " does not exist in gallery database.");
+		  System.out.println("Please add the artist before performing this action!");
+		  return;
+	  }
+	  
+	  //Update artist style
+	  sql = "update Artist set Style = ? where AName = ?";
+	  pstmt = con.prepareStatement(sql);
+	  pstmt.setString(1, style);
+	  pstmt.setString(2, name);
+	  pstmt.executeUpdate();
+	  System.out.println(name + " style has changed to " + style);
   }
 }
