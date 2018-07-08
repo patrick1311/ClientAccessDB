@@ -210,7 +210,7 @@ public class DBConnect {
   public static void updateCust(Connection con, int CustID, String group) throws SQLException {
 	  
 	  //Add new record into Like_Group table
-	  String sql = "insert ignore into Like_Group values (?, ?)";
+	  String sql = "insert into Like_Group values (?, ?)";
 	  PreparedStatement pstmt = con.prepareStatement(sql);
 	  pstmt.setInt(1, CustID);
 	  pstmt.setString(2, group);
@@ -219,7 +219,7 @@ public class DBConnect {
 	  }
 	  catch (Exception e) {
 		  System.out.println(e);
-		  System.out.println("Error! Please retry.");
+		  System.out.println("Error! Please add Customer or ArtWork first.");
 		  return;
 	  }
 	  
