@@ -7,12 +7,17 @@ public class DBConnect {
   public static void main(String[] args) throws ClassNotFoundException, SQLException {
 	  //Scanner for user input
 	  Scanner in = new Scanner(System.in);
+	  System.out.print("Enter MySQl username: ");
+	  String username = in.nextLine();
+	  System.out.print("Enter password: ");
+	  String password = in.nextLine();
+	  System.out.println();
 	  
 	  //Create connection to MySQL local server
 	  Class.forName("com.mysql.jdbc.Driver");  
 	  Connection con = DriverManager.getConnection(  
 			  "jdbc:mysql://localhost:3306/ArtBase?useLegacyDatetimeCode=false&serverTimezone=UTC&useSSL=false"
-			  ,"root","");   
+			  ,username,password);   
 
 	  boolean isRunning = true;
 	  int input;	//user choice
